@@ -22,45 +22,40 @@ LevelScene::LevelScene(Renderer &renderer)
 	       }())
   , ground([&renderer]()
 	   {
-	     Ogre::Plane plane(Ogre::Vector3::UNIT_Y, 0);
 	     Ogre::MeshManager::getSingleton()
 	       .createPlane("ground",
 			    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-			    plane,
-			    25000, 25000, 1, 1,
+			    Ogre::Plane(Ogre::Vector3::UNIT_Y, 0),
+			    25000, 25000, 100, 100,
 			    true,
 			    1, 25000, 25000,
-			    Ogre::Vector3::UNIT_Z);
+			    Ogre::Vector3::NEGATIVE_UNIT_X,
+			    Ogre::HardwareBuffer::HBU_STATIC_WRITE_ONLY,
+			    Ogre::HardwareBuffer::HBU_STATIC_WRITE_ONLY,
+			    false, false);
 	     Entity ground(renderer, "ground");
 
-	     ground.getOgre()->setCastShadows(false);
+	     ground.getOgre()->setCastShadows(true);
 	     ground.getOgre()->setMaterialName("wall");
 	     return ground;
 	   }())
   , logicThread(*this, renderer, players)
 {
-  renderer.getSceneManager().setAmbientLight(Ogre::ColourValue(0.2f, 0.2f, 0.2f));
+  // renderer.getSceneManager().setAmbientLight(Ogre::ColourValue(0.2f, 0.2f, 0.2f));
 
   {
     EntityFactory ef(renderer);
 
     players.push_back(std::move(ef.spawnArcher(Skins::Archer::BASE)));
+    ef.createLight(players.back().getEntity());
   }
   {
     EntityFactory ef(renderer);
 
     players.push_back(std::move(ef.spawnArcher(Skins::Archer::BASE)));
+    ef.createLight(players.back().getEntity());
   }
 
-  // obviously horrible & will be replaced.
-  auto light(renderer.getSceneManager().createLight("MainLight"));
-
-  light->setType(Ogre::Light::LT_DIRECTIONAL);
-  light->setDiffuseColour(1.0f, 0.7f, 0.4f);
-  light->setSpecularColour(1.0f, 0.5f, 1.0f);
-  light->setDirection(0.7f, -0.8f, -0.5f);
-  light->setPosition(50, 100, 50);
-  light->setAttenuation(500, 1.0f, 0.007f, 0.0f);
 
   terrainNode->scale(1.0, 1.0, 1.0);
 
@@ -108,7 +103,7 @@ void LevelScene::createWallMesh()
     Vect<3u, double> up{0.0, 1.0, 0.0};
     Vect<3u, double> right{0.0, 0.0, 1.0};
 
-    for (unsigned int i(0); i < 3; ++i)
+    for (unsigned int i(0); i < 4; ++i)
       {
 	for (Vect<2u, double> const &coef : {Vect<2u, double>(0, 0), Vect<2u, double>(1, 0),
 	      Vect<2u, double>(0, 1), Vect<2u, double>(1, 1)})
@@ -165,7 +160,6 @@ void LevelScene::createWallMesh()
 
 bool LevelScene::update(Game &, Ogre::FrameEvent const &)
 {
-  std::cout << "\ncamera : " << cameraNode->getPosition() << std::endl;
   logicThread->updateDisplay(*this);
   return true;
 }

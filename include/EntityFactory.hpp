@@ -6,6 +6,7 @@
 class Renderer;
 class Entity;
 class AnimatedEntity;
+namespace Ogre { class Light; };
 
 class EntityFactory
 {
@@ -18,6 +19,7 @@ public:
 
   Entity spawnOgreHead();
   AnimatedEntity spawnArcher(Skins::Skin);
+  Ogre::Light *createLight(Entity &);
 };
 
 #endif
